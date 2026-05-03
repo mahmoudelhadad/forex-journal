@@ -4,13 +4,14 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Forex Trading Journal</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/recharts/2.5.0/Recharts.js"></script>
+<script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/prop-types@15.8.1/prop-types.min.js"></script>
+<script src="https://unpkg.com/recharts@2.12.7/umd/Recharts.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0D1421;color:#C8D6E8;font-family:'Inter','Arial',sans-serif;font-size:12px;}
-select,input{background:#0D1421;color:#C8D6E8;border:1px solid #243350;border-radius:6px;padding:5px 8px;font-size:11px;outline:none;font-family:inherit;}
+html,body{background:#0D1421;color:#C8D6E8;font-family:'Inter','Segoe UI',Arial,sans-serif;font-size:12px;}
+select,input,textarea{background:#0D1421;color:#C8D6E8;border:1px solid #243350;border-radius:6px;padding:5px 8px;font-size:11px;outline:none;font-family:inherit;}
 select:focus,input:focus{border-color:#3B82F6;}
 button{cursor:pointer;font-family:inherit;}
 ::-webkit-scrollbar{width:5px;height:5px;}
@@ -19,14 +20,27 @@ button{cursor:pointer;font-family:inherit;}
 </style>
 </head>
 <body>
-<div id="root"></div>
+<div id="root"><div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#6B82A0;font-size:16px;">⏳ Loading Trading Journal...</div></div>
 <script>
-const{useState,useEffect,useMemo}=React;
-const{AreaChart,Area,BarChart,Bar,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer,PieChart,Pie,Cell,Legend}=Recharts;
+window.addEventListener('load', function() {
+  if (!window.Recharts) {
+    document.getElementById('root').innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;color:#EF4444;font-size:14px;text-align:center;padding:20px;">⚠️ Failed to load charts library.<br/>Please check your internet connection and refresh.</div>';
+    return;
+  }
+  initApp();
+});
 
-const LISTS={
+function initApp() {
+var R=React, RD=ReactDOM;
+var RC=Recharts;
+var useState=R.useState, useEffect=R.useEffect, useMemo=R.useMemo, useCallback=R.useCallback;
+var AreaChart=RC.AreaChart, Area=RC.Area, BarChart=RC.BarChart, Bar=RC.Bar;
+var XAxis=RC.XAxis, YAxis=RC.YAxis, CartesianGrid=RC.CartesianGrid, Tooltip=RC.Tooltip;
+var ResponsiveContainer=RC.ResponsiveContainer, PieChart=RC.PieChart, Pie=RC.Pie, Cell=RC.Cell, Legend=RC.Legend;
+var e=R.createElement;
+
+var LISTS={
   Symbol:["US100","US500","US30","XAU/USD","EUR/USD","GBP/USD","USD/JPY","AUD/USD","USD/CAD","USD/CHF","NZD/USD","EUR/GBP","EUR/JPY","GBP/JPY","EUR/AUD","GBP/AUD","AUD/JPY","CAD/JPY"],
-  Day:["Monday","Tuesday","Wednesday","Thursday","Friday"],
   Broker:["FTMO","E2T","TTP","Tradovate"],
   Account:["EVAL","Funded","Back Test","Demo","Real"],
   DailySetup:["Po3","AMD","SMT","50% Fib"],
@@ -42,258 +56,281 @@ const LISTS={
   PlanFollowed:["Yes","No"],
   Emotions:["FOMO Fear","Greed","Hoping","Revenge","Mistrust","Anxiety","Happy","Confidence","Ego"],
 };
-const PIP={
-  "US100":{f:1,pv:1.0},"US500":{f:1,pv:5.0},"US30":{f:1,pv:5.0},
-  "XAU/USD":{f:100,pv:10.0},"EUR/USD":{f:10000,pv:10.0},"GBP/USD":{f:10000,pv:10.0},
-  "USD/JPY":{f:100,pv:9.3},"AUD/USD":{f:10000,pv:10.0},"USD/CAD":{f:10000,pv:10.0},
-  "USD/CHF":{f:10000,pv:10.0},"NZD/USD":{f:10000,pv:10.0},"EUR/GBP":{f:10000,pv:13.0},
-  "EUR/JPY":{f:100,pv:9.3},"GBP/JPY":{f:100,pv:9.3},"EUR/AUD":{f:10000,pv:10.0},
-  "GBP/AUD":{f:10000,pv:10.0},"AUD/JPY":{f:100,pv:9.3},"CAD/JPY":{f:100,pv:9.3},
+var PIP={
+  "US100":{f:1,pv:1},"US500":{f:1,pv:5},"US30":{f:1,pv:5},
+  "XAU/USD":{f:100,pv:10},"EUR/USD":{f:10000,pv:10},"GBP/USD":{f:10000,pv:10},
+  "USD/JPY":{f:100,pv:9.3},"AUD/USD":{f:10000,pv:10},"USD/CAD":{f:10000,pv:10},
+  "USD/CHF":{f:10000,pv:10},"NZD/USD":{f:10000,pv:10},"EUR/GBP":{f:10000,pv:13},
+  "EUR/JPY":{f:100,pv:9.3},"GBP/JPY":{f:100,pv:9.3},"EUR/AUD":{f:10000,pv:10},
+  "GBP/AUD":{f:10000,pv:10},"AUD/JPY":{f:100,pv:9.3},"CAD/JPY":{f:100,pv:9.3},
 };
-const C={bg:"#0D1421",card:"#111D2E",row:"#1A2535",rowAlt:"#152030",border:"#243350",
-  text:"#C8D6E8",dim:"#6B82A0",bright:"#FFFFFF",
+var C={bg:"#0D1421",card:"#111D2E",row:"#1A2535",rowAlt:"#152030",border:"#243350",
+  text:"#C8D6E8",dim:"#6B82A0",white:"#FFFFFF",
   blue:"#3B82F6",green:"#22C55E",red:"#EF4444",gold:"#F59E0B",purple:"#8B5CF6",teal:"#14B8A6"};
 
+// Calculations
 function calcR(t){
   if(!t.entryPrice||!t.stopLoss||!t.exitPrice)return null;
-  const e=+t.entryPrice,sl=+t.stopLoss,ex=+t.exitPrice,d=Math.abs(e-sl);
+  var ep=+t.entryPrice,sl=+t.stopLoss,ex=+t.exitPrice,d=Math.abs(ep-sl);
   if(!d)return null;
-  return t.direction==="Long"?(ex-e)/d:(e-ex)/d;
+  return t.direction==="Long"?(ex-ep)/d:(ep-ex)/d;
 }
 function calcPlannedR(t){
   if(!t.entryPrice||!t.stopLoss||!t.target)return null;
-  const e=+t.entryPrice,sl=+t.stopLoss,tg=+t.target,d=Math.abs(e-sl);
+  var ep=+t.entryPrice,sl=+t.stopLoss,tg=+t.target,d=Math.abs(ep-sl);
   if(!d)return null;
-  return t.direction==="Long"?(tg-e)/d:(e-tg)/d;
+  return t.direction==="Long"?(tg-ep)/d:(ep-tg)/d;
 }
 function calcPL(t){
   if(!t.entryPrice||!t.exitPrice||!t.positionSize||!t.symbol)return null;
-  const p=PIP[t.symbol];if(!p)return null;
-  const diff=t.direction==="Long"?+t.exitPrice-+t.entryPrice:+t.entryPrice-+t.exitPrice;
-  return+t.positionSize*diff*p.f*p.pv;
+  var p=PIP[t.symbol]; if(!p)return null;
+  var diff=t.direction==="Long"?+t.exitPrice-+t.entryPrice:+t.entryPrice-+t.exitPrice;
+  return +t.positionSize*diff*p.f*p.pv;
 }
 function calcRisk(t){
   if(!t.entryPrice||!t.stopLoss||!t.positionSize||!t.symbol)return null;
-  const p=PIP[t.symbol];if(!p)return null;
-  return+t.positionSize*Math.abs(+t.entryPrice-+t.stopLoss)*p.f*p.pv;
+  var p=PIP[t.symbol]; if(!p)return null;
+  return +t.positionSize*Math.abs(+t.entryPrice-+t.stopLoss)*p.f*p.pv;
 }
 function calcPips(t){
   if(!t.entryPrice||!t.exitPrice||!t.symbol)return null;
-  const p=PIP[t.symbol];if(!p)return null;
-  const diff=t.direction==="Long"?+t.exitPrice-+t.entryPrice:+t.entryPrice-+t.exitPrice;
+  var p=PIP[t.symbol]; if(!p)return null;
+  var diff=t.direction==="Long"?+t.exitPrice-+t.entryPrice:+t.entryPrice-+t.exitPrice;
   return Math.round(diff*p.f*10)/10;
 }
 function calcDur(t){
   if(!t.entryTime||!t.exitTime||!t.date)return null;
   try{
-    const d=Math.abs(new Date(t.date+"T"+t.exitTime)-new Date(t.date+"T"+t.entryTime));
+    var d=Math.abs(new Date(t.date+"T"+t.exitTime)-new Date(t.date+"T"+t.entryTime));
     return Math.floor(d/3600000)+"h "+Math.floor((d%3600000)/60000)+"m";
-  }catch{return null;}
+  }catch(err){return null;}
 }
 function outcome(r){if(r===null)return"";return r>0.2?"Green":r<-0.2?"Red":"Breakeven";}
+function oc(o){return({Green:C.green,Red:C.red,Breakeven:C.gold})[o]||C.dim;}
 
 function enrich(trades,cap){
-  let run=cap;
-  return trades.map((t,i)=>{
-    const r=calcR(t),pl=calcPL(t),rv=calcRisk(t),comm=t.commission?+t.commission:0;
-    const netPL=pl!==null?pl-comm:null;
-    const capital=run;
+  var run=cap;
+  return trades.map(function(t,i){
+    var r=calcR(t),pl=calcPL(t),rv=calcRisk(t),comm=t.commission?+t.commission:0;
+    var netPL=pl!==null?pl-comm:null;
+    var capital=run;
     if(netPL!==null)run+=netPL;
-    return{...t,_i:i+1,_r:r,_pips:calcPips(t),_pl:pl,_netPL:netPL,_rv:rv,
-      _rPct:rv&&capital?rv/capital:null,_plannedR:calcPlannedR(t),
-      _outcome:outcome(r),_capital:capital,_plPct:pl&&capital?pl/capital:null,
-      _rExcl:r!==null&&rv&&rv!==0?r-comm/rv:null,_dur:calcDur(t)};
+    var o={};
+    Object.keys(t).forEach(function(k){o[k]=t[k];});
+    o._i=i+1; o._r=r; o._pips=calcPips(t); o._pl=pl; o._netPL=netPL; o._rv=rv;
+    o._rPct=(rv&&capital)?rv/capital:null;
+    o._plannedR=calcPlannedR(t);
+    o._outcome=outcome(r);
+    o._capital=capital;
+    o._dur=calcDur(t);
+    return o;
   });
 }
-const fr={
-  r:v=>v===null?"—":(v>=0?"+":"")+v.toFixed(2)+"R",
-  pct:v=>v===null?"—":(v*100).toFixed(1)+"%",
-  usd:v=>v===null?"—":(v>=0?"+$":"-$")+Math.abs(v).toFixed(2),
-  pip:v=>v===null?"—":(v>=0?"+":"")+v.toFixed(1),
-};
-const oc=o=>({Green:C.green,Red:C.red,Breakeven:C.gold}[o]||C.dim);
 
-// ── LOCAL STORAGE (replaces window.storage) ──
-const LS={
-  get:key=>{try{const v=localStorage.getItem(key);return v?{value:v}:null;}catch{return null;}},
-  set:(key,val)=>{try{localStorage.setItem(key,val);}catch{}},
+var fr={
+  r:function(v){return v===null?"—":(v>=0?"+":"")+v.toFixed(2)+"R";},
+  pct:function(v){return v===null?"—":(v*100).toFixed(1)+"%";},
+  usd:function(v){return v===null?"—":(v>=0?"+$":"-$")+Math.abs(v).toFixed(2);},
+  pip:function(v){return v===null?"—":(v>=0?"+":"")+v.toFixed(1);},
 };
 
-function Sel({value,onChange,options,placeholder="—",w="100%"}){
-  return React.createElement("select",{value:value||"",onChange:e=>onChange(e.target.value),style:{width:w}},
-    React.createElement("option",{value:""},placeholder),
-    options.map(o=>React.createElement("option",{key:o,value:o},o))
+var LS={
+  get:function(k){try{var v=localStorage.getItem(k);return v?{value:v}:null;}catch(err){return null;}},
+  set:function(k,v){try{localStorage.setItem(k,v);}catch(err){}},
+};
+
+// UI Atoms
+function Sel(p){
+  return e("select",{value:p.value||"",onChange:function(ev){p.onChange(ev.target.value);},style:{width:p.w||"100%"}},
+    e("option",{value:""},p.ph||"—"),
+    p.opts.map(function(o){return e("option",{key:o,value:o},o);})
   );
 }
-function Inp({value,onChange,type="text",placeholder="",w="100%"}){
-  return React.createElement("input",{type,value:value||"",placeholder,onChange:e=>onChange(e.target.value),style:{width:w}});
+function Inp(p){
+  return e("input",{type:p.type||"text",value:p.value||"",placeholder:p.ph||"",
+    step:p.step||"any",
+    onChange:function(ev){p.onChange(ev.target.value);},style:{width:p.w||"100%"}});
 }
-function FF({label,children}){
-  return React.createElement("div",{style:{marginBottom:8}},
-    React.createElement("div",{style:{color:C.dim,fontSize:9,marginBottom:2,textTransform:"uppercase",letterSpacing:"0.06em"}},label),
-    children
+function FF(p){
+  return e("div",{style:{marginBottom:7}},
+    e("div",{style:{color:C.dim,fontSize:9,marginBottom:2,textTransform:"uppercase",letterSpacing:"0.06em"}},p.label),
+    p.children
   );
 }
-function SecH({children,color}){
-  return React.createElement("div",{style:{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color,background:color+"22",padding:"3px 8px",borderRadius:4,margin:"10px 0 6px"}},children);
+function SecH(p){
+  return e("div",{style:{fontSize:9,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",
+    color:p.color,background:p.color+"22",padding:"3px 8px",borderRadius:4,margin:"10px 0 6px"}},p.label);
 }
-function KPI({label,value,color,sub}){
-  return React.createElement("div",{style:{background:C.card,border:`1px solid ${color}44`,borderRadius:10,padding:"12px 16px",flex:1,minWidth:110}},
-    React.createElement("div",{style:{color:C.dim,fontSize:9,textTransform:"uppercase",letterSpacing:"0.05em"}},label),
-    React.createElement("div",{style:{color,fontSize:18,fontWeight:800,marginTop:3}},value),
-    sub&&React.createElement("div",{style:{color:C.dim,fontSize:9,marginTop:2}},sub)
+function KPI(p){
+  return e("div",{style:{background:C.card,border:"1px solid "+p.color+"44",borderRadius:10,padding:"12px 16px",flex:1,minWidth:100}},
+    e("div",{style:{color:C.dim,fontSize:9,textTransform:"uppercase",letterSpacing:"0.05em"}},p.label),
+    e("div",{style:{color:p.color,fontSize:17,fontWeight:800,marginTop:3}},p.value),
+    p.sub&&e("div",{style:{color:C.dim,fontSize:9,marginTop:2}},p.sub)
   );
 }
-function Th({children,style={}}){
-  return React.createElement("th",{style:{background:C.bg,color:C.dim,fontSize:9,fontWeight:600,textTransform:"uppercase",padding:"7px 9px",textAlign:"center",borderBottom:`1px solid ${C.border}`,whiteSpace:"nowrap",...style}},children);
+function Th(p){
+  var s={background:C.bg,color:C.dim,fontSize:9,fontWeight:600,textTransform:"uppercase",
+    padding:"7px 9px",textAlign:"center",borderBottom:"1px solid "+C.border,whiteSpace:"nowrap"};
+  if(p.style)Object.keys(p.style).forEach(function(k){s[k]=p.style[k];});
+  return e("th",{style:s},p.children);
 }
-function Td({children,style={}}){
-  return React.createElement("td",{style:{color:C.text,fontSize:11,padding:"6px 9px",textAlign:"center",borderBottom:`1px solid #1A2535`,whiteSpace:"nowrap",...style}},children);
+function Td(p){
+  var s={color:C.text,fontSize:11,padding:"6px 9px",textAlign:"center",borderBottom:"1px solid #1A2535",whiteSpace:"nowrap"};
+  if(p.style)Object.keys(p.style).forEach(function(k){s[k]=p.style[k];});
+  return e("td",{style:s},p.children);
 }
 
-const emptyT=()=>({symbol:"",date:new Date().toISOString().split("T")[0],broker:"",account:"",
-  dailySetup:"",liquidity:"",entrySetup:"",intraDaySetup:"",intraDayTF:"",session:"",daySwing:"",
-  linkToChart:"",positionSize:"",direction:"",entryTime:"",exitTime:"",entryPrice:"",stopLoss:"",
-  target:"",exitPrice:"",commission:"",setupType:"",personalRating:"",planFollowed:"",emotions:"",
-  beSL:"",afSL:"",sl1:"",sl2:"",sl3:"",tm1:"",tm2:"",tm3:"",tm4:"",tm5:"",tm6:"",error:"",notes:""});
+// Trade Form
+function emptyT(){
+  return{symbol:"",date:new Date().toISOString().split("T")[0],broker:"",account:"",
+    dailySetup:"",liquidity:"",entrySetup:"",intraDaySetup:"",intraDayTF:"",session:"",daySwing:"",
+    linkToChart:"",positionSize:"",direction:"",entryTime:"",exitTime:"",entryPrice:"",stopLoss:"",
+    target:"",exitPrice:"",commission:"",setupType:"",personalRating:"",planFollowed:"",emotions:"",
+    beSL:"",afSL:"",sl1:"",sl2:"",sl3:"",tm1:"",tm2:"",tm3:"",tm4:"",tm5:"",tm6:"",error:"",notes:""};
+}
 
-function TradeForm({trade,onSave,onClose}){
-  const[t,setT]=useState(trade||emptyT());
-  const s=k=>v=>setT(p=>({...p,[k]:v}));
-  const g4={display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8};
-  const g3={display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8};
-  const g2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:8};
-  return React.createElement("div",{
-    onClick:e=>{if(e.target===e.currentTarget)onClose();},
-    style:{position:"fixed",inset:0,background:"#00000099",zIndex:200,display:"flex",alignItems:"flex-start",justifyContent:"center",overflowY:"auto",padding:16}
-  },
-    React.createElement("div",{style:{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,width:"100%",maxWidth:760,marginTop:10}},
-      React.createElement("div",{style:{padding:"13px 18px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center"}},
-        React.createElement("span",{style:{color:"#fff",fontWeight:700,fontSize:14}},trade?"Edit Trade":"New Trade"),
-        React.createElement("button",{onClick:onClose,style:{background:"none",border:"none",color:C.dim,fontSize:22,cursor:"pointer",lineHeight:1}},"×")
+function TradeForm(props){
+  var init=props.trade||emptyT();
+  var st=useState(init); var t=st[0],setT=st[1];
+  function s(k){return function(v){setT(function(prev){var n={};Object.keys(prev).forEach(function(pk){n[pk]=prev[pk];});n[k]=v;return n;});};}
+  var g4={display:"grid",gridTemplateColumns:"1fr 1fr 1fr 1fr",gap:8};
+  var g3={display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:8};
+  var g2={display:"grid",gridTemplateColumns:"1fr 1fr",gap:8};
+  return e("div",{onClick:function(ev){if(ev.target===ev.currentTarget)props.onClose();},
+    style:{position:"fixed",inset:0,background:"#00000099",zIndex:300,display:"flex",alignItems:"flex-start",justifyContent:"center",overflowY:"auto",padding:16}},
+    e("div",{style:{background:C.card,border:"1px solid "+C.border,borderRadius:12,width:"100%",maxWidth:780,marginTop:10,marginBottom:20}},
+      e("div",{style:{padding:"13px 18px",borderBottom:"1px solid "+C.border,display:"flex",justifyContent:"space-between",alignItems:"center"}},
+        e("span",{style:{color:"#fff",fontWeight:700,fontSize:14}},props.trade?"Edit Trade":"New Trade"),
+        e("button",{onClick:props.onClose,style:{background:"none",border:"none",color:C.dim,fontSize:24,cursor:"pointer",lineHeight:1}},"×")
       ),
-      React.createElement("div",{style:{padding:16,maxHeight:"82vh",overflowY:"auto"}},
-        React.createElement(SecH,{color:C.blue},"Trade info"),
-        React.createElement("div",{style:g4},
-          React.createElement(FF,{label:"Symbol"},React.createElement(Sel,{value:t.symbol,onChange:s("symbol"),options:LISTS.Symbol})),
-          React.createElement(FF,{label:"Date"},React.createElement(Inp,{value:t.date,onChange:s("date"),type:"date"})),
-          React.createElement(FF,{label:"Broker"},React.createElement(Sel,{value:t.broker,onChange:s("broker"),options:LISTS.Broker})),
-          React.createElement(FF,{label:"Account"},React.createElement(Sel,{value:t.account,onChange:s("account"),options:LISTS.Account}))
+      e("div",{style:{padding:16,maxHeight:"80vh",overflowY:"auto"}},
+        e(SecH,{color:C.blue,label:"Trade Info"}),
+        e("div",{style:g4},
+          e(FF,{label:"Symbol"},e(Sel,{value:t.symbol,onChange:s("symbol"),opts:LISTS.Symbol})),
+          e(FF,{label:"Date"},e(Inp,{value:t.date,onChange:s("date"),type:"date"})),
+          e(FF,{label:"Broker"},e(Sel,{value:t.broker,onChange:s("broker"),opts:LISTS.Broker})),
+          e(FF,{label:"Account"},e(Sel,{value:t.account,onChange:s("account"),opts:LISTS.Account}))
         ),
-        React.createElement("div",{style:g4},
-          React.createElement(FF,{label:"Session"},React.createElement(Sel,{value:t.session,onChange:s("session"),options:LISTS.Session})),
-          React.createElement(FF,{label:"Day/Swing"},React.createElement(Sel,{value:t.daySwing,onChange:s("daySwing"),options:LISTS.DaySwing})),
-          React.createElement(FF,{label:"Daily Setup"},React.createElement(Sel,{value:t.dailySetup,onChange:s("dailySetup"),options:LISTS.DailySetup})),
-          React.createElement(FF,{label:"Liquidity"},React.createElement(Sel,{value:t.liquidity,onChange:s("liquidity"),options:LISTS.Liquidity}))
+        e("div",{style:g4},
+          e(FF,{label:"Session"},e(Sel,{value:t.session,onChange:s("session"),opts:LISTS.Session})),
+          e(FF,{label:"Day/Swing"},e(Sel,{value:t.daySwing,onChange:s("daySwing"),opts:LISTS.DaySwing})),
+          e(FF,{label:"Daily Setup"},e(Sel,{value:t.dailySetup,onChange:s("dailySetup"),opts:LISTS.DailySetup})),
+          e(FF,{label:"Liquidity"},e(Sel,{value:t.liquidity,onChange:s("liquidity"),opts:LISTS.Liquidity}))
         ),
-        React.createElement("div",{style:g4},
-          React.createElement(FF,{label:"Entry Setup"},React.createElement(Sel,{value:t.entrySetup,onChange:s("entrySetup"),options:LISTS.EntrySetup})),
-          React.createElement(FF,{label:"IntraDay Setup"},React.createElement(Sel,{value:t.intraDaySetup,onChange:s("intraDaySetup"),options:LISTS.IntraDaySetup})),
-          React.createElement(FF,{label:"IntraDay TF"},React.createElement(Sel,{value:t.intraDayTF,onChange:s("intraDayTF"),options:LISTS.IntraDayTF})),
-          React.createElement(FF,{label:"Link to Chart"},React.createElement(Inp,{value:t.linkToChart,onChange:s("linkToChart"),placeholder:"https://..."}))
+        e("div",{style:g4},
+          e(FF,{label:"Entry Setup"},e(Sel,{value:t.entrySetup,onChange:s("entrySetup"),opts:LISTS.EntrySetup})),
+          e(FF,{label:"IntraDay Setup"},e(Sel,{value:t.intraDaySetup,onChange:s("intraDaySetup"),opts:LISTS.IntraDaySetup})),
+          e(FF,{label:"IntraDay TF"},e(Sel,{value:t.intraDayTF,onChange:s("intraDayTF"),opts:LISTS.IntraDayTF})),
+          e(FF,{label:"Link to Chart"},e(Inp,{value:t.linkToChart,onChange:s("linkToChart"),ph:"https://..."}))
         ),
-        React.createElement(SecH,{color:C.green},"Position & entry"),
-        React.createElement("div",{style:g4},
-          React.createElement(FF,{label:"Direction"},React.createElement(Sel,{value:t.direction,onChange:s("direction"),options:LISTS.Direction})),
-          React.createElement(FF,{label:"Position Size"},React.createElement(Inp,{value:t.positionSize,onChange:s("positionSize"),type:"number",placeholder:"0.01"})),
-          React.createElement(FF,{label:"Entry Time"},React.createElement(Inp,{value:t.entryTime,onChange:s("entryTime"),type:"time"})),
-          React.createElement(FF,{label:"Exit Time"},React.createElement(Inp,{value:t.exitTime,onChange:s("exitTime"),type:"time"}))
+        e(SecH,{color:C.green,label:"Position & Entry"}),
+        e("div",{style:g4},
+          e(FF,{label:"Direction"},e(Sel,{value:t.direction,onChange:s("direction"),opts:LISTS.Direction})),
+          e(FF,{label:"Position Size"},e(Inp,{value:t.positionSize,onChange:s("positionSize"),type:"number",ph:"0.01"})),
+          e(FF,{label:"Entry Time"},e(Inp,{value:t.entryTime,onChange:s("entryTime"),type:"time"})),
+          e(FF,{label:"Exit Time"},e(Inp,{value:t.exitTime,onChange:s("exitTime"),type:"time"}))
         ),
-        React.createElement("div",{style:g4},
-          React.createElement(FF,{label:"Entry Price"},React.createElement(Inp,{value:t.entryPrice,onChange:s("entryPrice"),type:"number",placeholder:"0.00000"})),
-          React.createElement(FF,{label:"Stop Loss"},React.createElement(Inp,{value:t.stopLoss,onChange:s("stopLoss"),type:"number",placeholder:"0.00000"})),
-          React.createElement(FF,{label:"Target"},React.createElement(Inp,{value:t.target,onChange:s("target"),type:"number",placeholder:"0.00000"})),
-          React.createElement(FF,{label:"Exit Price"},React.createElement(Inp,{value:t.exitPrice,onChange:s("exitPrice"),type:"number",placeholder:"0.00000"}))
+        e("div",{style:g4},
+          e(FF,{label:"Entry Price"},e(Inp,{value:t.entryPrice,onChange:s("entryPrice"),type:"number",ph:"0.00000"})),
+          e(FF,{label:"Stop Loss"},e(Inp,{value:t.stopLoss,onChange:s("stopLoss"),type:"number",ph:"0.00000"})),
+          e(FF,{label:"Target"},e(Inp,{value:t.target,onChange:s("target"),type:"number",ph:"0.00000"})),
+          e(FF,{label:"Exit Price"},e(Inp,{value:t.exitPrice,onChange:s("exitPrice"),type:"number",ph:"0.00000"}))
         ),
-        React.createElement(SecH,{color:C.purple},"Quality & review"),
-        React.createElement("div",{style:g4},
-          React.createElement(FF,{label:"Commission ($)"},React.createElement(Inp,{value:t.commission,onChange:s("commission"),type:"number",placeholder:"0.00"})),
-          React.createElement(FF,{label:"Setup Type"},React.createElement(Sel,{value:t.setupType,onChange:s("setupType"),options:LISTS.SetupType})),
-          React.createElement(FF,{label:"Personal Rating"},React.createElement(Sel,{value:t.personalRating,onChange:s("personalRating"),options:LISTS.Rating})),
-          React.createElement(FF,{label:"Plan Followed"},React.createElement(Sel,{value:t.planFollowed,onChange:s("planFollowed"),options:LISTS.PlanFollowed}))
+        e(SecH,{color:C.purple,label:"Quality & Review"}),
+        e("div",{style:g4},
+          e(FF,{label:"Commission ($)"},e(Inp,{value:t.commission,onChange:s("commission"),type:"number",ph:"0.00"})),
+          e(FF,{label:"Setup Type"},e(Sel,{value:t.setupType,onChange:s("setupType"),opts:LISTS.SetupType})),
+          e(FF,{label:"Personal Rating"},e(Sel,{value:t.personalRating,onChange:s("personalRating"),opts:LISTS.Rating})),
+          e(FF,{label:"Plan Followed"},e(Sel,{value:t.planFollowed,onChange:s("planFollowed"),opts:LISTS.PlanFollowed}))
         ),
-        React.createElement("div",{style:g2},
-          React.createElement(FF,{label:"Emotions"},React.createElement(Sel,{value:t.emotions,onChange:s("emotions"),options:LISTS.Emotions})),
-          React.createElement(FF,{label:"Notes"},React.createElement(Inp,{value:t.notes,onChange:s("notes"),placeholder:"Notes..."}))
+        e("div",{style:g2},
+          e(FF,{label:"Emotions"},e(Sel,{value:t.emotions,onChange:s("emotions"),opts:LISTS.Emotions})),
+          e(FF,{label:"Notes"},e(Inp,{value:t.notes,onChange:s("notes"),ph:"Notes..."}))
         ),
-        React.createElement(FF,{label:"Error"},React.createElement(Inp,{value:t.error,onChange:s("error"),placeholder:"Describe any mistake..."})),
-        React.createElement(SecH,{color:C.teal},"Max R"),
-        React.createElement("div",{style:g2},
-          React.createElement(FF,{label:"Be SL"},React.createElement(Inp,{value:t.beSL,onChange:s("beSL"),type:"number",placeholder:"e.g. 1.5"})),
-          React.createElement(FF,{label:"Af SL"},React.createElement(Inp,{value:t.afSL,onChange:s("afSL"),type:"number",placeholder:"e.g. -0.5"}))
+        e(FF,{label:"Error"},e(Inp,{value:t.error,onChange:s("error"),ph:"Describe any mistake..."})),
+        e(SecH,{color:C.teal,label:"Max R"}),
+        e("div",{style:g2},
+          e(FF,{label:"Be SL — best R before SL hit"},e(Inp,{value:t.beSL,onChange:s("beSL"),type:"number",ph:"e.g. 1.5"})),
+          e(FF,{label:"Af SL — best R after SL hit"},e(Inp,{value:t.afSL,onChange:s("afSL"),type:"number",ph:"e.g. -0.5"}))
         ),
-        React.createElement(SecH,{color:C.gold},"SL study"),
-        React.createElement("div",{style:g3},
-          React.createElement(FF,{label:"SL 1"},React.createElement(Inp,{value:t.sl1,onChange:s("sl1"),type:"number",placeholder:"e.g. 1.2"})),
-          React.createElement(FF,{label:"SL 2"},React.createElement(Inp,{value:t.sl2,onChange:s("sl2"),type:"number",placeholder:"e.g. 0.8"})),
-          React.createElement(FF,{label:"SL 3"},React.createElement(Inp,{value:t.sl3,onChange:s("sl3"),type:"number",placeholder:"e.g. 2.0"}))
+        e(SecH,{color:C.gold,label:"SL Study"}),
+        e("div",{style:g3},
+          e(FF,{label:"SL 1 (R)"},e(Inp,{value:t.sl1,onChange:s("sl1"),type:"number",ph:"e.g. 1.2"})),
+          e(FF,{label:"SL 2 (R)"},e(Inp,{value:t.sl2,onChange:s("sl2"),type:"number",ph:"e.g. 0.8"})),
+          e(FF,{label:"SL 3 (R)"},e(Inp,{value:t.sl3,onChange:s("sl3"),type:"number",ph:"e.g. 2.0"}))
         ),
-        React.createElement(SecH,{color:C.blue},"Trade management R"),
-        React.createElement("div",{style:g3},
-          ...["tm1","tm2","tm3","tm4","tm5","tm6"].map((k,i)=>
-            React.createElement(FF,{label:"TM "+(i+1),key:k},React.createElement(Inp,{value:t[k],onChange:s(k),type:"number"}))
-          )
+        e(SecH,{color:C.blue,label:"Trade Management R"}),
+        e("div",{style:g3},
+          ["tm1","tm2","tm3","tm4","tm5","tm6"].map(function(k,i){
+            return e(FF,{label:"TM "+(i+1),key:k},e(Inp,{value:t[k],onChange:s(k),type:"number"}));
+          })
         ),
-        React.createElement("div",{style:{display:"flex",gap:10,marginTop:14,paddingTop:14,borderTop:`1px solid ${C.border}`}},
-          React.createElement("button",{onClick:()=>onSave(t),style:{background:C.blue,color:"#fff",border:"none",borderRadius:8,padding:"9px 22px",fontSize:13,fontWeight:700,cursor:"pointer",flex:1}},"Save trade"),
-          React.createElement("button",{onClick:onClose,style:{background:C.border,color:C.text,border:"none",borderRadius:8,padding:"9px 14px",fontSize:12,cursor:"pointer"}},"Cancel")
+        e("div",{style:{display:"flex",gap:10,marginTop:16,paddingTop:14,borderTop:"1px solid "+C.border}},
+          e("button",{onClick:function(){props.onSave(t);},
+            style:{background:C.blue,color:"#fff",border:"none",borderRadius:8,padding:"9px 22px",fontSize:13,fontWeight:700,cursor:"pointer",flex:1}},
+            "💾 Save Trade"),
+          e("button",{onClick:props.onClose,
+            style:{background:C.border,color:C.text,border:"none",borderRadius:8,padding:"9px 14px",fontSize:12,cursor:"pointer"}},
+            "Cancel")
         )
       )
     )
   );
 }
 
-function RawTab({trades,onEdit,onDelete,onAdd}){
-  const[fSym,setFSym]=useState("");
-  const[fOut,setFOut]=useState("");
-  const filtered=trades.filter(t=>(!fSym||t.symbol===fSym)&&(!fOut||t._outcome===fOut));
-  const hdrs=["#","Symbol","Date","Day","Session","Broker","Acct","Dir","Size","Entry","SL","Target","Exit","R","Pips","P/L","Net P/L","Planned R","Outcome","Setup","Rating","Plan","Risk $","Risk%","Duration","Actions"];
-  return React.createElement("div",null,
-    React.createElement("div",{style:{display:"flex",gap:10,marginBottom:12,flexWrap:"wrap",alignItems:"center"}},
-      React.createElement("button",{onClick:onAdd,style:{background:C.blue,color:"#fff",border:"none",borderRadius:8,padding:"7px 16px",fontSize:12,fontWeight:700,cursor:"pointer"}},"+ Add Trade"),
-      React.createElement(Sel,{value:fSym,onChange:setFSym,options:LISTS.Symbol,placeholder:"All symbols",w:"150px"}),
-      React.createElement(Sel,{value:fOut,onChange:setFOut,options:["Green","Red","Breakeven"],placeholder:"All outcomes",w:"140px"}),
-      React.createElement("span",{style:{color:C.dim,fontSize:11}},filtered.length+" trades")
+// Raw Tab
+function RawTab(props){
+  var fst=useState(""); var fSym=fst[0],setFSym=fst[1];
+  var fot=useState(""); var fOut=fot[0],setFOut=fot[1];
+  var filtered=props.trades.filter(function(t){return(!fSym||t.symbol===fSym)&&(!fOut||t._outcome===fOut);});
+  var hdrs=["#","Symbol","Date","Day","Session","Broker","Acct","Dir","Size","Entry","SL","Target","Exit","R","Pips","P/L","Net P/L","Plan R","Outcome","Setup","★","Plan","Risk$","Risk%","Dur","Actions"];
+  return e("div",null,
+    e("div",{style:{display:"flex",gap:10,marginBottom:12,flexWrap:"wrap",alignItems:"center"}},
+      e("button",{onClick:props.onAdd,style:{background:C.blue,color:"#fff",border:"none",borderRadius:8,padding:"7px 16px",fontSize:12,fontWeight:700}},"+ Add Trade"),
+      e(Sel,{value:fSym,onChange:setFSym,opts:LISTS.Symbol,ph:"All symbols",w:"148px"}),
+      e(Sel,{value:fOut,onChange:setFOut,opts:["Green","Red","Breakeven"],ph:"All outcomes",w:"138px"}),
+      e("span",{style:{color:C.dim,fontSize:11}},filtered.length+" trades")
     ),
-    React.createElement("div",{style:{overflowX:"auto",borderRadius:10,border:`1px solid ${C.border}`}},
-      React.createElement("table",{style:{borderCollapse:"collapse",width:"100%",minWidth:1500}},
-        React.createElement("thead",null,React.createElement("tr",null,...hdrs.map(h=>React.createElement(Th,{key:h},h)))),
-        React.createElement("tbody",null,
+    e("div",{style:{overflowX:"auto",borderRadius:10,border:"1px solid "+C.border}},
+      e("table",{style:{borderCollapse:"collapse",width:"100%",minWidth:1600}},
+        e("thead",null,e("tr",null,hdrs.map(function(hd){return e(Th,{key:hd},hd);}))),
+        e("tbody",null,
           filtered.length===0
-            ?React.createElement("tr",null,React.createElement("td",{colSpan:26,style:{textAlign:"center",padding:40,color:C.dim,fontSize:13}},'No trades yet — click "+ Add Trade" to start'))
-            :filtered.map((t,i)=>{
-              const bg=i%2===0?C.row:C.rowAlt;
-              const o=oc(t._outcome);
-              return React.createElement("tr",{key:t._tid||i,style:{background:bg}},
-                React.createElement(Td,null,t._i),
-                React.createElement(Td,{style:{fontWeight:700}},t.symbol),
-                React.createElement(Td,null,t.date),
-                React.createElement(Td,null,t.date?new Date(t.date+"T12:00").toLocaleDateString("en",{weekday:"short"}):"—"),
-                React.createElement(Td,null,t.session||"—"),
-                React.createElement(Td,null,t.broker||"—"),
-                React.createElement(Td,null,t.account||"—"),
-                React.createElement(Td,{style:{color:t.direction==="Long"?C.green:t.direction==="Short"?C.red:C.dim,fontWeight:700}},t.direction||"—"),
-                React.createElement(Td,null,t.positionSize||"—"),
-                React.createElement(Td,null,t.entryPrice||"—"),
-                React.createElement(Td,null,t.stopLoss||"—"),
-                React.createElement(Td,null,t.target||"—"),
-                React.createElement(Td,null,t.exitPrice||"—"),
-                React.createElement(Td,{style:{color:t._r!==null?(t._r>0?C.green:C.red):C.dim,fontWeight:700}},fr.r(t._r)),
-                React.createElement(Td,{style:{color:t._pips!==null?(t._pips>0?C.green:C.red):C.dim}},fr.pip(t._pips)),
-                React.createElement(Td,{style:{color:t._pl!==null?(t._pl>0?C.green:C.red):C.dim}},fr.usd(t._pl)),
-                React.createElement(Td,{style:{color:t._netPL!==null?(t._netPL>0?C.green:C.red):C.dim}},fr.usd(t._netPL)),
-                React.createElement(Td,{style:{color:C.gold}},fr.r(t._plannedR)),
-                React.createElement(Td,null,React.createElement("span",{style:{color:o,fontWeight:700,fontSize:10,background:o+"22",padding:"2px 7px",borderRadius:4}},t._outcome||"—")),
-                React.createElement(Td,null,t.setupType||"—"),
-                React.createElement(Td,null,t.personalRating||"—"),
-                React.createElement(Td,{style:{color:t.planFollowed==="Yes"?C.green:t.planFollowed==="No"?C.red:C.dim}},t.planFollowed||"—"),
-                React.createElement(Td,null,t._rv!==null?"$"+t._rv.toFixed(0):"—"),
-                React.createElement(Td,null,fr.pct(t._rPct)),
-                React.createElement(Td,null,t._dur||"—"),
-                React.createElement(Td,null,
-                  React.createElement("div",{style:{display:"flex",gap:4}},
-                    React.createElement("button",{onClick:()=>onEdit(t),style:{background:C.border,border:"none",color:C.blue,borderRadius:4,padding:"2px 7px",fontSize:10,cursor:"pointer"}},"Edit"),
-                    React.createElement("button",{onClick:()=>onDelete(t._tid),style:{background:C.border,border:"none",color:C.red,borderRadius:4,padding:"2px 7px",fontSize:10,cursor:"pointer"}},"Del")
+            ?e("tr",null,e("td",{colSpan:26,style:{textAlign:"center",padding:50,color:C.dim,fontSize:14}},'No trades yet — click "+ Add Trade" to start'))
+            :filtered.map(function(t,i){
+              var bg=i%2===0?C.row:C.rowAlt;
+              var o=oc(t._outcome);
+              var day=t.date?new Date(t.date+"T12:00").toLocaleDateString("en",{weekday:"short"}):"—";
+              return e("tr",{key:t._tid,style:{background:bg}},
+                e(Td,null,t._i),
+                e(Td,{style:{fontWeight:700,color:C.white}},t.symbol||"—"),
+                e(Td,null,t.date||"—"),
+                e(Td,null,day),
+                e(Td,null,t.session||"—"),
+                e(Td,null,t.broker||"—"),
+                e(Td,null,t.account||"—"),
+                e(Td,{style:{color:t.direction==="Long"?C.green:t.direction==="Short"?C.red:C.dim,fontWeight:700}},t.direction||"—"),
+                e(Td,null,t.positionSize||"—"),
+                e(Td,null,t.entryPrice||"—"),
+                e(Td,null,t.stopLoss||"—"),
+                e(Td,null,t.target||"—"),
+                e(Td,null,t.exitPrice||"—"),
+                e(Td,{style:{color:t._r!==null?(t._r>0?C.green:C.red):C.dim,fontWeight:700}},fr.r(t._r)),
+                e(Td,{style:{color:t._pips!==null?(t._pips>0?C.green:C.red):C.dim}},fr.pip(t._pips)),
+                e(Td,{style:{color:t._pl!==null?(t._pl>0?C.green:C.red):C.dim}},fr.usd(t._pl)),
+                e(Td,{style:{color:t._netPL!==null?(t._netPL>0?C.green:C.red):C.dim}},fr.usd(t._netPL)),
+                e(Td,{style:{color:C.gold}},fr.r(t._plannedR)),
+                e(Td,null,e("span",{style:{color:o,fontWeight:700,fontSize:10,background:o+"22",padding:"2px 7px",borderRadius:4}},t._outcome||"—")),
+                e(Td,null,t.setupType||"—"),
+                e(Td,null,t.personalRating||"—"),
+                e(Td,{style:{color:t.planFollowed==="Yes"?C.green:t.planFollowed==="No"?C.red:C.dim}},t.planFollowed||"—"),
+                e(Td,null,t._rv!==null?"$"+t._rv.toFixed(0):"—"),
+                e(Td,null,fr.pct(t._rPct)),
+                e(Td,null,t._dur||"—"),
+                e(Td,null,
+                  e("div",{style:{display:"flex",gap:4,justifyContent:"center"}},
+                    e("button",{onClick:function(){props.onEdit(t);},style:{background:"#1A3A6B",border:"none",color:C.blue,borderRadius:4,padding:"2px 8px",fontSize:10}},"Edit"),
+                    e("button",{onClick:function(){props.onDelete(t._tid);},style:{background:"#3A1A1A",border:"none",color:C.red,borderRadius:4,padding:"2px 8px",fontSize:10}},"Del")
                   )
                 )
               );
@@ -304,37 +341,44 @@ function RawTab({trades,onEdit,onDelete,onAdd}){
   );
 }
 
+// Aggregation
 function aggG(ts){
-  const n=ts.length,green=ts.filter(t=>t._outcome==="Green").length,red=ts.filter(t=>t._outcome==="Red").length,be=ts.filter(t=>t._outcome==="Breakeven").length;
-  const d=green+red,wr=d>0?green/d:null;
-  const totalR=ts.reduce((s,t)=>s+(t._r||0),0),pl=ts.reduce((s,t)=>s+(t._pl||0),0),netPL=ts.reduce((s,t)=>s+(t._netPL||0),0);
-  const avgR=n>0?totalR/n:null;
-  return{n,green,red,be,wr,totalR,avgR,pl,netPL};
+  var n=ts.length;
+  var green=ts.filter(function(t){return t._outcome==="Green";}).length;
+  var red=ts.filter(function(t){return t._outcome==="Red";}).length;
+  var be=ts.filter(function(t){return t._outcome==="Breakeven";}).length;
+  var d=green+red, wr=d>0?green/d:null;
+  var totalR=ts.reduce(function(s,t){return s+(t._r||0);},0);
+  var pl=ts.reduce(function(s,t){return s+(t._pl||0);},0);
+  var netPL=ts.reduce(function(s,t){return s+(t._netPL||0);},0);
+  var avgR=n>0?totalR/n:null;
+  return{n:n,green:green,red:red,be:be,wr:wr,totalR:totalR,avgR:avgR,pl:pl,netPL:netPL};
 }
 
-function AggTab({rows,keyLabel}){
-  let run=0;
-  const hdrs=[keyLabel,"Trades","Green","Red","BE","Win Rate","Total R","Avg R","P/L ($)","Net P/L","Cum. P/L"];
-  return React.createElement("div",{style:{overflowX:"auto",borderRadius:10,border:`1px solid ${C.border}`}},
-    React.createElement("table",{style:{borderCollapse:"collapse",width:"100%"}},
-      React.createElement("thead",null,React.createElement("tr",null,...hdrs.map(h=>React.createElement(Th,{key:h},h)))),
-      React.createElement("tbody",null,
+function AggTable(props){
+  var rows=props.rows; var run=0;
+  var hdrs=[props.keyLabel,"Trades","Green","Red","BE","Win Rate","Total R","Avg R","P/L ($)","Net P/L","Cum. P/L"];
+  return e("div",{style:{overflowX:"auto",borderRadius:10,border:"1px solid "+C.border}},
+    e("table",{style:{borderCollapse:"collapse",width:"100%"}},
+      e("thead",null,e("tr",null,hdrs.map(function(h){return e(Th,{key:h},h);}))),
+      e("tbody",null,
         rows.length===0
-          ?React.createElement("tr",null,React.createElement("td",{colSpan:11,style:{textAlign:"center",padding:40,color:C.dim,fontSize:13}},"No data yet — add trades in the Raw tab"))
-          :rows.map((r,i)=>{
-            run+=r.netPL||0;const bg=i%2===0?C.row:C.rowAlt;
-            return React.createElement("tr",{key:i,style:{background:bg}},
-              React.createElement(Td,{style:{fontWeight:700,color:C.bright}},r.key),
-              React.createElement(Td,null,r.n),
-              React.createElement(Td,{style:{color:C.green,fontWeight:700}},r.green),
-              React.createElement(Td,{style:{color:C.red,fontWeight:700}},r.red),
-              React.createElement(Td,{style:{color:C.gold}},r.be),
-              React.createElement(Td,{style:{color:r.wr>0.5?C.green:C.red}},r.wr!==null?(r.wr*100).toFixed(0)+"%":"—"),
-              React.createElement(Td,{style:{color:r.totalR>=0?C.green:C.red,fontWeight:700}},r.totalR.toFixed(2)),
-              React.createElement(Td,{style:{color:r.avgR>=0?C.green:C.red}},r.avgR!==null?r.avgR.toFixed(2):"—"),
-              React.createElement(Td,{style:{color:r.pl>=0?C.green:C.red}},fr.usd(r.pl)),
-              React.createElement(Td,{style:{color:r.netPL>=0?C.green:C.red}},fr.usd(r.netPL)),
-              React.createElement(Td,{style:{color:run>=0?C.green:C.red,fontWeight:700}},fr.usd(run))
+          ?e("tr",null,e("td",{colSpan:11,style:{textAlign:"center",padding:40,color:C.dim,fontSize:13}},"No data yet — add trades in the Raw tab"))
+          :rows.map(function(r,i){
+            run+=r.netPL||0;
+            var bg=i%2===0?C.row:C.rowAlt;
+            return e("tr",{key:i,style:{background:bg}},
+              e(Td,{style:{fontWeight:700,color:C.white}},r.key),
+              e(Td,null,r.n),
+              e(Td,{style:{color:C.green,fontWeight:700}},r.green),
+              e(Td,{style:{color:C.red,fontWeight:700}},r.red),
+              e(Td,{style:{color:C.gold}},r.be),
+              e(Td,{style:{color:r.wr!==null&&r.wr>0.5?C.green:C.red}},r.wr!==null?(r.wr*100).toFixed(0)+"%":"—"),
+              e(Td,{style:{color:r.totalR>=0?C.green:C.red,fontWeight:700}},r.totalR.toFixed(2)),
+              e(Td,{style:{color:r.avgR>=0?C.green:C.red}},r.avgR!==null?r.avgR.toFixed(2):"—"),
+              e(Td,{style:{color:r.pl>=0?C.green:C.red}},fr.usd(r.pl)),
+              e(Td,{style:{color:r.netPL>=0?C.green:C.red}},fr.usd(r.netPL)),
+              e(Td,{style:{color:run>=0?C.green:C.red,fontWeight:700}},fr.usd(run))
             );
           })
       )
@@ -342,260 +386,301 @@ function AggTab({rows,keyLabel}){
   );
 }
 
-function getWeekStart(d){const dt=new Date(d+"T12:00"),day=dt.getDay(),diff=day===0?-6:1-day;dt.setDate(dt.getDate()+diff);return dt.toISOString().split("T")[0];}
+function getWeekStart(d){
+  var dt=new Date(d+"T12:00"),day=dt.getDay(),diff=day===0?-6:1-day;
+  dt.setDate(dt.getDate()+diff);
+  return dt.toISOString().split("T")[0];
+}
 
-function DailyTab({trades}){
-  const rows=useMemo(()=>{
-    const m={};
-    trades.forEach(t=>{if(!t.date)return;if(!m[t.date])m[t.date]=[];m[t.date].push(t);});
-    return Object.entries(m).sort(([a],[b])=>a.localeCompare(b)).map(([date,ts])=>{
-      const dn=new Date(date+"T12:00").toLocaleDateString("en",{weekday:"short"});
-      return{key:date+" ("+dn+")",...aggG(ts)};
+function DailyTab(props){
+  var rows=useMemo(function(){
+    var m={};
+    props.trades.forEach(function(t){if(!t.date)return;if(!m[t.date])m[t.date]=[];m[t.date].push(t);});
+    return Object.entries(m).sort(function(a,b){return a[0]>b[0]?1:-1;}).map(function(entry){
+      var dn=new Date(entry[0]+"T12:00").toLocaleDateString("en",{weekday:"short"});
+      var obj=aggG(entry[1]); obj.key=entry[0]+" ("+dn+")"; return obj;
     });
-  },[trades]);
-  return React.createElement("div",null,
-    React.createElement("div",{style:{color:C.dim,fontSize:11,marginBottom:12}},rows.length+" trading days"),
-    React.createElement(AggTab,{rows,keyLabel:"Date"})
-  );
-}
-function WeeklyTab({trades}){
-  const rows=useMemo(()=>{
-    const m={};
-    trades.forEach(t=>{if(!t.date)return;const w=getWeekStart(t.date);if(!m[w])m[w]=[];m[w].push(t);});
-    return Object.entries(m).sort(([a],[b])=>a.localeCompare(b)).map(([w,ts])=>{
-      const e=new Date(w+"T12:00");e.setDate(e.getDate()+4);
-      return{key:w+" → "+e.toISOString().split("T")[0],...aggG(ts)};
-    });
-  },[trades]);
-  return React.createElement("div",null,
-    React.createElement("div",{style:{color:C.dim,fontSize:11,marginBottom:12}},rows.length+" weeks"),
-    React.createElement(AggTab,{rows,keyLabel:"Week"})
-  );
-}
-function MonthlyTab({trades}){
-  const rows=useMemo(()=>{
-    const m={};
-    trades.forEach(t=>{if(!t.date)return;const k=t.date.slice(0,7);if(!m[k])m[k]=[];m[k].push(t);});
-    return Object.entries(m).sort(([a],[b])=>a.localeCompare(b)).map(([k,ts])=>{
-      const[yr,mo]=k.split("-");
-      return{key:new Date(+yr,+mo-1,1).toLocaleDateString("en",{month:"long",year:"numeric"}),...aggG(ts)};
-    });
-  },[trades]);
-  return React.createElement("div",null,
-    React.createElement("div",{style:{color:C.dim,fontSize:11,marginBottom:12}},rows.length+" months"),
-    React.createElement(AggTab,{rows,keyLabel:"Month"})
+  },[props.trades]);
+  return e("div",null,
+    e("div",{style:{color:C.dim,fontSize:11,marginBottom:12}},rows.length+" trading days"),
+    e(AggTable,{rows:rows,keyLabel:"Date"})
   );
 }
 
-const csty={background:C.card,borderRadius:10,border:`1px solid ${C.border}`,padding:14,marginBottom:14};
-const ctitle={color:C.text,fontSize:11,fontWeight:700,marginBottom:10};
-const TT={contentStyle:{background:C.card,border:`1px solid ${C.border}`,color:C.text,fontSize:10}};
+function WeeklyTab(props){
+  var rows=useMemo(function(){
+    var m={};
+    props.trades.forEach(function(t){if(!t.date)return;var w=getWeekStart(t.date);if(!m[w])m[w]=[];m[w].push(t);});
+    return Object.entries(m).sort(function(a,b){return a[0]>b[0]?1:-1;}).map(function(entry){
+      var end=new Date(entry[0]+"T12:00");end.setDate(end.getDate()+4);
+      var obj=aggG(entry[1]); obj.key=entry[0]+" → "+end.toISOString().split("T")[0]; return obj;
+    });
+  },[props.trades]);
+  return e("div",null,
+    e("div",{style:{color:C.dim,fontSize:11,marginBottom:12}},rows.length+" weeks"),
+    e(AggTable,{rows:rows,keyLabel:"Week"})
+  );
+}
 
-function DashboardTab({trades,startCapital}){
-  const n=trades.length;
-  const green=trades.filter(t=>t._outcome==="Green").length;
-  const red=trades.filter(t=>t._outcome==="Red").length;
-  const be=trades.filter(t=>t._outcome==="Breakeven").length;
-  const denom=green+red,wr=denom>0?(green/denom*100).toFixed(1)+"%":"—";
-  const totalNetPL=trades.reduce((s,t)=>s+(t._netPL||0),0);
-  const totalR=trades.reduce((s,t)=>s+(t._r||0),0);
-  const currentCap=startCapital+totalNetPL;
-  const ret=startCapital>0?((currentCap-startCapital)/startCapital*100).toFixed(1)+"%":"—";
-  let run=startCapital;
-  const eqCurve=[{x:0,eq:startCapital}];
-  trades.forEach((t,i)=>{run+=t._netPL||0;eqCurve.push({x:i+1,eq:Math.round(run*100)/100});});
-  const byMonth={};
-  trades.forEach(t=>{if(!t.date)return;const m=t.date.slice(0,7);if(!byMonth[m])byMonth[m]={r:0,n:0,g:0};byMonth[m].r+=t._r||0;byMonth[m].n++;if(t._outcome==="Green")byMonth[m].g++;});
-  const mData=Object.entries(byMonth).sort(([a],[b])=>a.localeCompare(b)).map(([m,v])=>({
-    m:new Date(m+"-01").toLocaleDateString("en",{month:"short",year:"2-digit"}),
-    R:Math.round(v.r*100)/100,wr:v.n>0?Math.round(v.g/v.n*100):0
-  }));
-  const bySym={};
-  trades.forEach(t=>{if(!t.symbol)return;if(!bySym[t.symbol])bySym[t.symbol]={r:0};bySym[t.symbol].r+=t._r||0;});
-  const symData=Object.entries(bySym).map(([s,v])=>({s,R:Math.round(v.r*100)/100})).sort((a,b)=>b.R-a.R);
-  const pieD=[{name:"Green",value:green,color:C.green},{name:"Red",value:red,color:C.red},{name:"BE",value:be,color:C.gold}].filter(d=>d.value>0);
+function MonthlyTab(props){
+  var rows=useMemo(function(){
+    var m={};
+    props.trades.forEach(function(t){if(!t.date)return;var k=t.date.slice(0,7);if(!m[k])m[k]=[];m[k].push(t);});
+    return Object.entries(m).sort(function(a,b){return a[0]>b[0]?1:-1;}).map(function(entry){
+      var parts=entry[0].split("-");
+      var obj=aggG(entry[1]);
+      obj.key=new Date(+parts[0],+parts[1]-1,1).toLocaleDateString("en",{month:"long",year:"numeric"});
+      return obj;
+    });
+  },[props.trades]);
+  return e("div",null,
+    e("div",{style:{color:C.dim,fontSize:11,marginBottom:12}},rows.length+" months"),
+    e(AggTable,{rows:rows,keyLabel:"Month"})
+  );
+}
 
-  return React.createElement("div",null,
-    React.createElement("div",{style:{display:"flex",gap:10,flexWrap:"wrap",marginBottom:16}},
-      React.createElement(KPI,{label:"Total Trades",value:n,color:C.blue}),
-      React.createElement(KPI,{label:"Win Rate",value:wr,color:C.green,sub:green+"W / "+red+"L / "+be+"BE"}),
-      React.createElement(KPI,{label:"Net P/L",value:fr.usd(totalNetPL),color:totalNetPL>=0?C.green:C.red,sub:"Return: "+ret}),
-      React.createElement(KPI,{label:"Total R",value:totalR.toFixed(2)+"R",color:totalR>=0?C.green:C.red}),
-      React.createElement(KPI,{label:"Capital",value:"$"+currentCap.toLocaleString(undefined,{maximumFractionDigits:0}),color:C.gold,sub:"Start: $"+startCapital.toLocaleString()})
+// Dashboard
+var card={background:C.card,borderRadius:10,border:"1px solid "+C.border,padding:14,marginBottom:14};
+var ctitle={color:C.text,fontSize:11,fontWeight:700,marginBottom:10};
+var TT={contentStyle:{background:"#1A2535",border:"1px solid "+C.border,color:C.text,fontSize:10}};
+
+function DashboardTab(props){
+  var trades=props.trades, cap=props.cap;
+  var n=trades.length;
+  var green=trades.filter(function(t){return t._outcome==="Green";}).length;
+  var red=trades.filter(function(t){return t._outcome==="Red";}).length;
+  var be=trades.filter(function(t){return t._outcome==="Breakeven";}).length;
+  var denom=green+red, wr=denom>0?(green/denom*100).toFixed(1)+"%":"—";
+  var totalNPL=trades.reduce(function(s,t){return s+(t._netPL||0);},0);
+  var totalR=trades.reduce(function(s,t){return s+(t._r||0);},0);
+  var curCap=cap+totalNPL;
+  var ret=cap>0?((curCap-cap)/cap*100).toFixed(1)+"%":"—";
+
+  var run=cap; var eqCurve=[{x:0,eq:cap}];
+  trades.forEach(function(t,i){run+=t._netPL||0;eqCurve.push({x:i+1,eq:Math.round(run*100)/100});});
+
+  var byMo={};
+  trades.forEach(function(t){if(!t.date)return;var m=t.date.slice(0,7);if(!byMo[m])byMo[m]={r:0,n:0,g:0};byMo[m].r+=t._r||0;byMo[m].n++;if(t._outcome==="Green")byMo[m].g++;});
+  var mData=Object.entries(byMo).sort(function(a,b){return a[0]>b[0]?1:-1;}).map(function(ent){
+    return{m:new Date(ent[0]+"-01").toLocaleDateString("en",{month:"short",year:"2-digit"}),R:Math.round(ent[1].r*100)/100};
+  });
+
+  var bySym={};
+  trades.forEach(function(t){if(!t.symbol)return;if(!bySym[t.symbol])bySym[t.symbol]=0;bySym[t.symbol]+=t._r||0;});
+  var symData=Object.entries(bySym).map(function(ent){return{s:ent[0],R:Math.round(ent[1]*100)/100};}).sort(function(a,b){return b.R-a.R;});
+
+  var pieD=[{name:"Green",value:green,color:C.green},{name:"Red",value:red,color:C.red},{name:"BE",value:be,color:C.gold}].filter(function(d){return d.value>0;});
+
+  var noData=e("div",{style:{color:C.dim,fontSize:11,padding:"20px",textAlign:"center"}},"Add trades to see data");
+
+  return e("div",null,
+    e("div",{style:{display:"flex",gap:10,flexWrap:"wrap",marginBottom:16}},
+      e(KPI,{label:"Total Trades",value:n,color:C.blue}),
+      e(KPI,{label:"Win Rate",value:wr,color:C.green,sub:green+"W / "+red+"L / "+be+"BE"}),
+      e(KPI,{label:"Net P/L",value:fr.usd(totalNPL),color:totalNPL>=0?C.green:C.red,sub:"Return: "+ret}),
+      e(KPI,{label:"Total R",value:totalR.toFixed(2)+"R",color:totalR>=0?C.green:C.red,sub:n>0?"Avg: "+(totalR/n).toFixed(2)+"R":""}),
+      e(KPI,{label:"Capital",value:"$"+Math.round(curCap).toLocaleString(),color:C.gold,sub:"Start: $"+cap.toLocaleString()})
     ),
-    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"2fr 1fr",gap:14,marginBottom:14}},
-      React.createElement("div",{style:csty},
-        React.createElement("div",{style:ctitle},"Equity Curve"),
-        React.createElement(ResponsiveContainer,{width:"100%",height:190},
-          React.createElement(AreaChart,{data:eqCurve},
-            React.createElement("defs",null,React.createElement("linearGradient",{id:"eqg",x1:"0",y1:"0",x2:"0",y2:"1"},React.createElement("stop",{offset:"5%",stopColor:C.blue,stopOpacity:0.35}),React.createElement("stop",{offset:"95%",stopColor:C.blue,stopOpacity:0.02}))),
-            React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
-            React.createElement(XAxis,{dataKey:"x",stroke:C.dim,tick:{fontSize:9}}),
-            React.createElement(YAxis,{stroke:C.dim,tick:{fontSize:9},tickFormatter:v=>"$"+v.toLocaleString(undefined,{maximumFractionDigits:0})}),
-            React.createElement(Tooltip,{...TT,formatter:v=>["$"+v.toFixed(2),"Equity"]}),
-            React.createElement(Area,{type:"monotone",dataKey:"eq",stroke:C.blue,fill:"url(#eqg)",strokeWidth:2,dot:false})
+    e("div",{style:{display:"grid",gridTemplateColumns:"2fr 1fr",gap:14,marginBottom:14}},
+      e("div",{style:card},
+        e("div",{style:ctitle},"📈 Equity Curve"),
+        n===0?noData:e(ResponsiveContainer,{width:"100%",height:190},
+          e(AreaChart,{data:eqCurve},
+            e("defs",null,e("linearGradient",{id:"eqg",x1:"0",y1:"0",x2:"0",y2:"1"},
+              e("stop",{offset:"5%",stopColor:C.blue,stopOpacity:0.35}),
+              e("stop",{offset:"95%",stopColor:C.blue,stopOpacity:0.02})
+            )),
+            e(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
+            e(XAxis,{dataKey:"x",stroke:C.dim,tick:{fontSize:9}}),
+            e(YAxis,{stroke:C.dim,tick:{fontSize:9},tickFormatter:function(v){return"$"+v.toLocaleString(undefined,{maximumFractionDigits:0});}}),
+            e(Tooltip,Object.assign({},TT,{formatter:function(v){return["$"+v.toFixed(2),"Equity"];}})),
+            e(Area,{type:"monotone",dataKey:"eq",stroke:C.blue,fill:"url(#eqg)",strokeWidth:2,dot:false})
           )
         )
       ),
-      React.createElement("div",{style:csty},
-        React.createElement("div",{style:ctitle},"Win / Loss / BE"),
-        React.createElement(ResponsiveContainer,{width:"100%",height:190},
-          React.createElement(PieChart,null,
-            React.createElement(Pie,{data:pieD,cx:"50%",cy:"50%",innerRadius:45,outerRadius:70,paddingAngle:3,dataKey:"value"},
-              ...pieD.map(e=>React.createElement(Cell,{key:e.name,fill:e.color}))
+      e("div",{style:card},
+        e("div",{style:ctitle},"🥧 Win / Loss / BE"),
+        pieD.length===0?noData:e(ResponsiveContainer,{width:"100%",height:190},
+          e(PieChart,null,
+            e(Pie,{data:pieD,cx:"50%",cy:"45%",innerRadius:45,outerRadius:70,paddingAngle:3,dataKey:"value"},
+              pieD.map(function(d){return e(Cell,{key:d.name,fill:d.color});})
             ),
-            React.createElement(Tooltip,TT),
-            React.createElement(Legend,{iconType:"circle",wrapperStyle:{fontSize:10,color:C.text}})
+            e(Tooltip,TT),
+            e(Legend,{iconType:"circle",wrapperStyle:{fontSize:10,color:C.text}})
           )
         )
       )
     ),
-    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}},
-      React.createElement("div",{style:csty},
-        React.createElement("div",{style:ctitle},"Monthly R"),
-        mData.length===0
-          ?React.createElement("div",{style:{color:C.dim,fontSize:11,padding:20,textAlign:"center"}},"Add trades to see monthly performance")
-          :React.createElement(ResponsiveContainer,{width:"100%",height:180},
-            React.createElement(BarChart,{data:mData,margin:{bottom:18}},
-              React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
-              React.createElement(XAxis,{dataKey:"m",stroke:C.dim,tick:{fontSize:9},angle:-30,textAnchor:"end"}),
-              React.createElement(YAxis,{stroke:C.dim,tick:{fontSize:9}}),
-              React.createElement(Tooltip,TT),
-              React.createElement(Bar,{dataKey:"R",radius:[4,4,0,0]},...mData.map((e,i)=>React.createElement(Cell,{key:i,fill:e.R>=0?C.green:C.red})))
+    e("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14}},
+      e("div",{style:card},
+        e("div",{style:ctitle},"📅 Monthly R"),
+        mData.length===0?noData:e(ResponsiveContainer,{width:"100%",height:185},
+          e(BarChart,{data:mData,margin:{bottom:20}},
+            e(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
+            e(XAxis,{dataKey:"m",stroke:C.dim,tick:{fontSize:9},angle:-30,textAnchor:"end"}),
+            e(YAxis,{stroke:C.dim,tick:{fontSize:9}}),
+            e(Tooltip,TT),
+            e(Bar,{dataKey:"R",radius:[4,4,0,0]},
+              mData.map(function(d,i){return e(Cell,{key:i,fill:d.R>=0?C.green:C.red});})
             )
           )
+        )
       ),
-      React.createElement("div",{style:csty},
-        React.createElement("div",{style:ctitle},"R by Symbol"),
-        symData.length===0
-          ?React.createElement("div",{style:{color:C.dim,fontSize:11,padding:20,textAlign:"center"}},"No data yet")
-          :React.createElement(ResponsiveContainer,{width:"100%",height:180},
-            React.createElement(BarChart,{data:symData,layout:"vertical",margin:{left:10}},
-              React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
-              React.createElement(XAxis,{type:"number",stroke:C.dim,tick:{fontSize:9}}),
-              React.createElement(YAxis,{dataKey:"s",type:"category",stroke:C.dim,tick:{fontSize:9},width:65}),
-              React.createElement(Tooltip,TT),
-              React.createElement(Bar,{dataKey:"R",radius:[0,4,4,0]},...symData.map((e,i)=>React.createElement(Cell,{key:i,fill:e.R>=0?C.green:C.red})))
+      e("div",{style:card},
+        e("div",{style:ctitle},"💹 Total R by Symbol"),
+        symData.length===0?noData:e(ResponsiveContainer,{width:"100%",height:185},
+          e(BarChart,{data:symData,layout:"vertical",margin:{left:10}},
+            e(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
+            e(XAxis,{type:"number",stroke:C.dim,tick:{fontSize:9}}),
+            e(YAxis,{dataKey:"s",type:"category",stroke:C.dim,tick:{fontSize:9},width:68}),
+            e(Tooltip,TT),
+            e(Bar,{dataKey:"R",radius:[0,4,4,0]},
+              symData.map(function(d,i){return e(Cell,{key:i,fill:d.R>=0?C.green:C.red});})
             )
           )
+        )
       )
     )
   );
 }
 
-function byField(trades,field,list){return list.map(k=>{const ts=trades.filter(t=>t[field]===k);if(!ts.length)return null;return{key:k,...aggG(ts)};}).filter(Boolean);}
+// Strategy Tab
+function byField(trades,field,list){
+  return list.map(function(k){
+    var ts=trades.filter(function(t){return t[field]===k;});
+    if(!ts.length)return null;
+    var obj=aggG(ts); obj.key=k; return obj;
+  }).filter(Boolean);
+}
 
-function StrategyTab({trades}){
-  const byEntry=useMemo(()=>byField(trades,"entrySetup",LISTS.EntrySetup),[trades]);
-  const byDaily=useMemo(()=>byField(trades,"dailySetup",LISTS.DailySetup),[trades]);
-  const byST=useMemo(()=>byField(trades,"setupType",LISTS.SetupType),[trades]);
-  const bySess=useMemo(()=>byField(trades,"session",LISTS.Session),[trades]);
-  const byDay=useMemo(()=>LISTS.Day.map(d=>{const ts=trades.filter(t=>t.date&&new Date(t.date+"T12:00").toLocaleDateString("en",{weekday:"long"})===d);if(!ts.length)return null;return{key:d.slice(0,3),...aggG(ts)};}).filter(Boolean),[trades]);
-  const slStudy=useMemo(()=>[
-    {l:"Actual R",field:"_r",direct:true},{l:"Be SL",field:"beSL"},{l:"Af SL",field:"afSL"},
-    {l:"SL 1",field:"sl1"},{l:"SL 2",field:"sl2"},{l:"SL 3",field:"sl3"},
-  ].map(({l,field,direct})=>{
-    const vals=trades.map(t=>direct?t._r:t[field]?+t[field]:null).filter(v=>v!==null);
-    if(!vals.length)return null;
-    const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
-    return{l,n:vals.length,avg:Math.round(avg*100)/100,max:Math.round(Math.max(...vals)*100)/100,min:Math.round(Math.min(...vals)*100)/100};
-  }).filter(Boolean),[trades]);
-  const tmStudy=useMemo(()=>["tm1","tm2","tm3","tm4","tm5","tm6"].map((field,i)=>{
-    const vals=trades.map(t=>t[field]?+t[field]:null).filter(v=>v!==null);
-    if(!vals.length)return null;
-    const avg=vals.reduce((s,v)=>s+v,0)/vals.length;
-    return{l:"TM "+(i+1),n:vals.length,avg:Math.round(avg*100)/100,max:Math.round(Math.max(...vals)*100)/100};
-  }).filter(Boolean),[trades]);
-
-  const perfCols=[
+function PerfTable(props){
+  var cols=[
     {k:"key",l:"Name"},{k:"n",l:"Trades"},
-    {k:"wr",l:"Win%",fn:v=>v!==null?(v*100).toFixed(0)+"%":"—",col:v=>v>0.5?C.green:C.red},
-    {k:"totalR",l:"Total R",fn:v=>v.toFixed(2),col:v=>v>=0?C.green:C.red},
-    {k:"avgR",l:"Avg R",fn:v=>v!==null?v.toFixed(2):"—",col:v=>v>=0?C.green:C.red},
+    {k:"wr",l:"Win%",fn:function(v){return v!==null?(v*100).toFixed(0)+"%":"—";},c:function(v){return v>0.5?C.green:C.red;}},
+    {k:"totalR",l:"Total R",fn:function(v){return v.toFixed(2);},c:function(v){return v>=0?C.green:C.red;}},
+    {k:"avgR",l:"Avg R",fn:function(v){return v!==null?v.toFixed(2):"—";},c:function(v){return v>=0?C.green:C.red;}},
   ];
-  function MiniTable({title,color,rows}){
-    return React.createElement("div",{style:{...csty,flex:1,minWidth:280}},
-      React.createElement("div",{style:{...ctitle,color}},title),
-      React.createElement("table",{style:{width:"100%",borderCollapse:"collapse"}},
-        React.createElement("thead",null,React.createElement("tr",null,...perfCols.map(c=>React.createElement(Th,{key:c.k},c.l)))),
-        React.createElement("tbody",null,
-          rows.length===0
-            ?React.createElement("tr",null,React.createElement("td",{colSpan:5,style:{textAlign:"center",padding:16,color:C.dim,fontSize:11}},"Not enough data yet"))
-            :rows.map((r,i)=>React.createElement("tr",{key:i,style:{background:i%2===0?C.row:C.rowAlt}},
-              ...perfCols.map(c=>React.createElement(Td,{key:c.k,style:c.col?{color:c.col(r[c.k])}:{}},c.fn?c.fn(r[c.k]):r[c.k]))
-            ))
+  return e("div",{style:Object.assign({},card,{flex:1,minWidth:260})},
+    e("div",{style:Object.assign({},ctitle,{color:props.color})},props.title),
+    e("table",{style:{width:"100%",borderCollapse:"collapse"}},
+      e("thead",null,e("tr",null,cols.map(function(c){return e(Th,{key:c.k},c.l);}))),
+      e("tbody",null,
+        props.rows.length===0
+          ?e("tr",null,e("td",{colSpan:5,style:{textAlign:"center",padding:14,color:C.dim,fontSize:11}},"Not enough data yet"))
+          :props.rows.map(function(r,i){
+            return e("tr",{key:i,style:{background:i%2===0?C.row:C.rowAlt}},
+              cols.map(function(c){
+                return e(Td,{key:c.k,style:c.c?{color:c.c(r[c.k])}:{}},c.fn?c.fn(r[c.k]):r[c.k]);
+              })
+            );
+          })
+      )
+    )
+  );
+}
+
+function StrategyTab(props){
+  var trades=props.trades;
+  var byEntry=useMemo(function(){return byField(trades,"entrySetup",LISTS.EntrySetup);},[trades]);
+  var byDaily=useMemo(function(){return byField(trades,"dailySetup",LISTS.DailySetup);},[trades]);
+  var byST=useMemo(function(){return byField(trades,"setupType",LISTS.SetupType);},[trades]);
+  var bySess=useMemo(function(){return byField(trades,"session",LISTS.Session);},[trades]);
+  var byDay=useMemo(function(){
+    var DAYS=["Monday","Tuesday","Wednesday","Thursday","Friday"];
+    return DAYS.map(function(d){
+      var ts=trades.filter(function(t){return t.date&&new Date(t.date+"T12:00").toLocaleDateString("en",{weekday:"long"})===d;});
+      if(!ts.length)return null;
+      var obj=aggG(ts); obj.key=d.slice(0,3); return obj;
+    }).filter(Boolean);
+  },[trades]);
+
+  var slStudy=useMemo(function(){
+    return [{l:"Actual R",f:"_r",direct:true},{l:"Be SL",f:"beSL"},{l:"Af SL",f:"afSL"},
+            {l:"SL 1",f:"sl1"},{l:"SL 2",f:"sl2"},{l:"SL 3",f:"sl3"}
+    ].map(function(item){
+      var vals=trades.map(function(t){return item.direct?t._r:(t[item.f]?+t[item.f]:null);}).filter(function(v){return v!==null;});
+      if(!vals.length)return null;
+      var avg=vals.reduce(function(s,v){return s+v;},0)/vals.length;
+      return{l:item.l,n:vals.length,avg:+(avg.toFixed(2)),max:+(Math.max.apply(null,vals).toFixed(2)),min:+(Math.min.apply(null,vals).toFixed(2))};
+    }).filter(Boolean);
+  },[trades]);
+
+  var tmStudy=useMemo(function(){
+    return ["tm1","tm2","tm3","tm4","tm5","tm6"].map(function(f,i){
+      var vals=trades.map(function(t){return t[f]?+t[f]:null;}).filter(function(v){return v!==null;});
+      if(!vals.length)return null;
+      var avg=vals.reduce(function(s,v){return s+v;},0)/vals.length;
+      return{l:"TM "+(i+1),n:vals.length,avg:+(avg.toFixed(2)),max:+(Math.max.apply(null,vals).toFixed(2))};
+    }).filter(Boolean);
+  },[trades]);
+
+  var noData=e("div",{style:{color:C.dim,fontSize:11,padding:20,textAlign:"center"}},"Not enough data yet");
+
+  return e("div",null,
+    e("div",{style:{display:"flex",gap:14,flexWrap:"wrap",marginBottom:14}},
+      e(PerfTable,{title:"By Entry Setup",color:C.green,rows:byEntry}),
+      e(PerfTable,{title:"By Daily Setup",color:C.blue,rows:byDaily})
+    ),
+    e("div",{style:{display:"flex",gap:14,flexWrap:"wrap",marginBottom:14}},
+      e(PerfTable,{title:"By Session",color:C.teal,rows:bySess}),
+      e(PerfTable,{title:"By Setup Type (A+/A/B/C)",color:C.gold,rows:byST})
+    ),
+    e("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}},
+      e("div",{style:card},
+        e("div",{style:Object.assign({},ctitle,{color:C.purple})},"Avg R by Day of Week"),
+        byDay.length===0?noData:e(ResponsiveContainer,{width:"100%",height:165},
+          e(BarChart,{data:byDay.map(function(r){return{name:r.key,avgR:+(r.avgR||0).toFixed(2)};})},
+            e(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
+            e(XAxis,{dataKey:"name",stroke:C.dim,tick:{fontSize:10}}),
+            e(YAxis,{stroke:C.dim,tick:{fontSize:9}}),
+            e(Tooltip,TT),
+            e(Bar,{dataKey:"avgR",radius:[4,4,0,0]},byDay.map(function(d,i){return e(Cell,{key:i,fill:d.avgR>=0?C.green:C.red});}))
+          )
+        )
+      ),
+      e("div",{style:card},
+        e("div",{style:Object.assign({},ctitle,{color:C.teal})},"Win Rate by Entry Setup"),
+        byEntry.length===0?noData:e(ResponsiveContainer,{width:"100%",height:165},
+          e(BarChart,{data:byEntry.map(function(r){return{name:r.key,wr:r.wr!==null?+(r.wr*100).toFixed(1):0};})},
+            e(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
+            e(XAxis,{dataKey:"name",stroke:C.dim,tick:{fontSize:9}}),
+            e(YAxis,{stroke:C.dim,tick:{fontSize:9},domain:[0,100],tickFormatter:function(v){return v+"%";}}),
+            e(Tooltip,TT),
+            e(Bar,{dataKey:"wr",fill:C.blue,radius:[4,4,0,0]})
+          )
         )
       )
-    );
-  }
-  return React.createElement("div",null,
-    React.createElement("div",{style:{display:"flex",gap:14,flexWrap:"wrap",marginBottom:14}},
-      React.createElement(MiniTable,{title:"By Entry Setup",color:C.green,rows:byEntry}),
-      React.createElement(MiniTable,{title:"By Daily Setup",color:C.blue,rows:byDaily})
     ),
-    React.createElement("div",{style:{display:"flex",gap:14,flexWrap:"wrap",marginBottom:14}},
-      React.createElement(MiniTable,{title:"By Session",color:C.teal,rows:bySess}),
-      React.createElement(MiniTable,{title:"By Setup Type",color:C.gold,rows:byST})
-    ),
-    React.createElement("div",{style:{display:"grid",gridTemplateColumns:"1fr 1fr",gap:14,marginBottom:14}},
-      React.createElement("div",{style:csty},
-        React.createElement("div",{style:{...ctitle,color:C.purple}},"Avg R by Day of Week"),
-        byDay.length===0
-          ?React.createElement("div",{style:{color:C.dim,fontSize:11,padding:20,textAlign:"center"}},"Not enough data")
-          :React.createElement(ResponsiveContainer,{width:"100%",height:170},
-            React.createElement(BarChart,{data:byDay.map(r=>({name:r.key,avgR:r.avgR||0}))},
-              React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
-              React.createElement(XAxis,{dataKey:"name",stroke:C.dim,tick:{fontSize:10}}),
-              React.createElement(YAxis,{stroke:C.dim,tick:{fontSize:9}}),
-              React.createElement(Tooltip,TT),
-              React.createElement(Bar,{dataKey:"avgR",radius:[4,4,0,0]},...byDay.map((e,i)=>React.createElement(Cell,{key:i,fill:e.avgR>=0?C.green:C.red})))
-            )
-          )
-      ),
-      React.createElement("div",{style:csty},
-        React.createElement("div",{style:{...ctitle,color:C.teal}},"Win Rate by Entry Setup"),
-        byEntry.length===0
-          ?React.createElement("div",{style:{color:C.dim,fontSize:11,padding:20,textAlign:"center"}},"Not enough data")
-          :React.createElement(ResponsiveContainer,{width:"100%",height:170},
-            React.createElement(BarChart,{data:byEntry.map(r=>({name:r.key,wr:r.wr!==null?+(r.wr*100).toFixed(1):0}))},
-              React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:C.border}),
-              React.createElement(XAxis,{dataKey:"name",stroke:C.dim,tick:{fontSize:9}}),
-              React.createElement(YAxis,{stroke:C.dim,tick:{fontSize:9},domain:[0,100],tickFormatter:v=>v+"%"}),
-              React.createElement(Tooltip,TT),
-              React.createElement(Bar,{dataKey:"wr",fill:C.blue,radius:[4,4,0,0]})
-            )
-          )
-      )
-    ),
-    React.createElement("div",{style:{display:"flex",gap:14,flexWrap:"wrap"}},
-      React.createElement("div",{style:{...csty,flex:1,minWidth:280}},
-        React.createElement("div",{style:{...ctitle,color:C.gold}},"SL Study"),
-        React.createElement("table",{style:{width:"100%",borderCollapse:"collapse"}},
-          React.createElement("thead",null,React.createElement("tr",null,React.createElement(Th,null,"SL"),React.createElement(Th,null,"n"),React.createElement(Th,null,"Avg R"),React.createElement(Th,null,"Max"),React.createElement(Th,null,"Min"))),
-          React.createElement("tbody",null,
-            slStudy.length===0
-              ?React.createElement("tr",null,React.createElement("td",{colSpan:5,style:{textAlign:"center",padding:16,color:C.dim,fontSize:11}},"Add trades with SL data"))
-              :slStudy.map((r,i)=>React.createElement("tr",{key:i,style:{background:i%2===0?C.row:C.rowAlt}},
-                React.createElement(Td,{style:{fontWeight:700}},r.l),React.createElement(Td,null,r.n),
-                React.createElement(Td,{style:{color:r.avg>=0?C.green:C.red,fontWeight:700}},r.avg),
-                React.createElement(Td,{style:{color:C.green}},r.max),
-                React.createElement(Td,{style:{color:C.red}},r.min)
-              ))
+    e("div",{style:{display:"flex",gap:14,flexWrap:"wrap"}},
+      e("div",{style:Object.assign({},card,{flex:1,minWidth:260})},
+        e("div",{style:Object.assign({},ctitle,{color:C.gold})},"SL Study — Avg R Comparison"),
+        e("table",{style:{width:"100%",borderCollapse:"collapse"}},
+          e("thead",null,e("tr",null,e(Th,null,"SL Option"),e(Th,null,"n"),e(Th,null,"Avg R"),e(Th,null,"Max R"),e(Th,null,"Min R"))),
+          e("tbody",null,
+            slStudy.length===0?e("tr",null,e("td",{colSpan:5,style:{textAlign:"center",padding:14,color:C.dim,fontSize:11}},"Add trades with SL data"))
+            :slStudy.map(function(r,i){
+              return e("tr",{key:i,style:{background:i%2===0?C.row:C.rowAlt}},
+                e(Td,{style:{fontWeight:700}},r.l),e(Td,null,r.n),
+                e(Td,{style:{color:r.avg>=0?C.green:C.red,fontWeight:700}},r.avg),
+                e(Td,{style:{color:C.green}},r.max),e(Td,{style:{color:C.red}},r.min)
+              );
+            })
           )
         )
       ),
-      React.createElement("div",{style:{...csty,flex:1,minWidth:280}},
-        React.createElement("div",{style:{...ctitle,color:C.blue}},"Trade Management R"),
-        React.createElement("table",{style:{width:"100%",borderCollapse:"collapse"}},
-          React.createElement("thead",null,React.createElement("tr",null,React.createElement(Th,null,"TM"),React.createElement(Th,null,"n"),React.createElement(Th,null,"Avg R"),React.createElement(Th,null,"Max R"))),
-          React.createElement("tbody",null,
-            tmStudy.length===0
-              ?React.createElement("tr",null,React.createElement("td",{colSpan:4,style:{textAlign:"center",padding:16,color:C.dim,fontSize:11}},"Add trades with TM data"))
-              :tmStudy.map((r,i)=>React.createElement("tr",{key:i,style:{background:i%2===0?C.row:C.rowAlt}},
-                React.createElement(Td,{style:{fontWeight:700}},r.l),React.createElement(Td,null,r.n),
-                React.createElement(Td,{style:{color:r.avg>=0?C.green:C.red,fontWeight:700}},r.avg),
-                React.createElement(Td,{style:{color:C.green}},r.max)
-              ))
+      e("div",{style:Object.assign({},card,{flex:1,minWidth:260})},
+        e("div",{style:Object.assign({},ctitle,{color:C.blue})},"Trade Management R Comparison"),
+        e("table",{style:{width:"100%",borderCollapse:"collapse"}},
+          e("thead",null,e("tr",null,e(Th,null,"TM"),e(Th,null,"n"),e(Th,null,"Avg R"),e(Th,null,"Max R"))),
+          e("tbody",null,
+            tmStudy.length===0?e("tr",null,e("td",{colSpan:4,style:{textAlign:"center",padding:14,color:C.dim,fontSize:11}},"Add trades with TM data"))
+            :tmStudy.map(function(r,i){
+              return e("tr",{key:i,style:{background:i%2===0?C.row:C.rowAlt}},
+                e(Td,{style:{fontWeight:700}},r.l),e(Td,null,r.n),
+                e(Td,{style:{color:r.avg>=0?C.green:C.red,fontWeight:700}},r.avg),
+                e(Td,{style:{color:C.green}},r.max)
+              );
+            })
           )
         )
       )
@@ -603,85 +688,93 @@ function StrategyTab({trades}){
   );
 }
 
+// Main App
 function App(){
-  const[raw,setRaw]=useState([]);
-  const[tab,setTab]=useState("dashboard");
-  const[showForm,setShowForm]=useState(false);
-  const[editT,setEditT]=useState(null);
-  const[startCap,setStartCap]=useState(10000);
-  const[showSettings,setShowSettings]=useState(false);
-  const[capInp,setCapInp]=useState("10000");
+  var rs=useState([]); var raw=rs[0],setRaw=rs[1];
+  var ts=useState("dashboard"); var tab=ts[0],setTab=ts[1];
+  var fs=useState(false); var showForm=fs[0],setShowForm=fs[1];
+  var et=useState(null); var editT=et[0],setEditT=et[1];
+  var cs=useState(10000); var cap=cs[0],setCap=cs[1];
+  var ss=useState(false); var showSet=ss[0],setShowSet=ss[1];
+  var ci=useState("10000"); var capInp=ci[0],setCapInp=ci[1];
 
-  useEffect(()=>{
-    try{const r=LS.get("fxj_trades");if(r?.value)setRaw(JSON.parse(r.value));}catch{}
-    try{const s=LS.get("fxj_settings");if(s?.value){const v=JSON.parse(s.value);setStartCap(v.cap||10000);setCapInp(String(v.cap||10000));}}catch{}
+  useEffect(function(){
+    var r=LS.get("fxj_trades"); if(r&&r.value){try{setRaw(JSON.parse(r.value));}catch(err){}}
+    var s=LS.get("fxj_set"); if(s&&s.value){try{var v=JSON.parse(s.value);setCap(v.cap||10000);setCapInp(String(v.cap||10000));}catch(err){}}
   },[]);
+  useEffect(function(){LS.set("fxj_trades",JSON.stringify(raw));},[raw]);
 
-  useEffect(()=>{LS.set("fxj_trades",JSON.stringify(raw));},[raw]);
+  var trades=useMemo(function(){return enrich(raw,cap);},[raw,cap]);
 
-  const trades=useMemo(()=>enrich(raw,startCap),[raw,startCap]);
-
-  const saveTrade=t=>{
-    if(editT)setRaw(p=>p.map(x=>x._tid===editT._tid?{...t,_tid:editT._tid}:x));
-    else setRaw(p=>[...p,{...t,_tid:Date.now()}]);
+  function saveTrade(t){
+    if(editT){setRaw(function(p){return p.map(function(x){return x._tid===editT._tid?Object.assign({},t,{_tid:editT._tid}):x;});});}
+    else{setRaw(function(p){return p.concat([Object.assign({},t,{_tid:Date.now()})]);});}
     setShowForm(false);setEditT(null);
-  };
-  const delTrade=id=>{if(window.confirm("Delete this trade?"))setRaw(p=>p.filter(t=>t._tid!==id));};
-  const openEdit=t=>{setEditT(t);setShowForm(true);};
-  const openAdd=()=>{setEditT(null);setShowForm(true);};
-  const saveSettings=()=>{const c=parseFloat(capInp)||10000;setStartCap(c);LS.set("fxj_settings",JSON.stringify({cap:c}));setShowSettings(false);};
+  }
+  function delTrade(id){if(window.confirm("Delete this trade?"))setRaw(function(p){return p.filter(function(t){return t._tid!==id;});});}
+  function openEdit(t){setEditT(t);setShowForm(true);}
+  function openAdd(){setEditT(null);setShowForm(true);}
+  function saveSets(){var c=parseFloat(capInp)||10000;setCap(c);LS.set("fxj_set",JSON.stringify({cap:c}));setShowSet(false);}
 
-  const TABS=[
-    {id:"dashboard",l:"Dashboard"},{id:"raw",l:"Raw"},
-    {id:"daily",l:"Daily Log"},{id:"weekly",l:"Weekly"},
-    {id:"monthly",l:"Monthly"},{id:"strategy",l:"Strategy"},
+  var TABS=[
+    {id:"dashboard",l:"📊 Dashboard"},{id:"raw",l:"📋 Raw"},
+    {id:"daily",l:"📅 Daily"},{id:"weekly",l:"📆 Weekly"},
+    {id:"monthly",l:"🗓 Monthly"},{id:"strategy",l:"🧠 Strategy"},
   ];
 
-  return React.createElement("div",{style:{background:C.bg,minHeight:"100vh",color:C.text}},
-    React.createElement("div",{style:{background:C.card,borderBottom:`1px solid ${C.border}`,padding:"10px 18px",display:"flex",alignItems:"center",justifyContent:"space-between"}},
-      React.createElement("div",{style:{display:"flex",alignItems:"center",gap:10}},
-        React.createElement("div",{style:{width:32,height:32,borderRadius:8,background:"#1E3A6E",display:"flex",alignItems:"center",justifyContent:"center",fontSize:16}},"📈"),
-        React.createElement("div",null,
-          React.createElement("div",{style:{fontWeight:800,fontSize:14,color:"#fff"}},"Forex Trading Journal"),
-          React.createElement("div",{style:{fontSize:9,color:C.dim}},raw.length+" trades · Capital: $"+startCap.toLocaleString())
+  return e("div",{style:{background:C.bg,minHeight:"100vh",color:C.text}},
+    // Header
+    e("div",{style:{background:C.card,borderBottom:"1px solid "+C.border,padding:"10px 18px",display:"flex",alignItems:"center",justifyContent:"space-between",position:"sticky",top:0,zIndex:100}},
+      e("div",{style:{display:"flex",alignItems:"center",gap:10}},
+        e("div",{style:{width:34,height:34,borderRadius:8,background:"#1E3A6E",display:"flex",alignItems:"center",justifyContent:"center",fontSize:18}},"📈"),
+        e("div",null,
+          e("div",{style:{fontWeight:800,fontSize:14,color:"#fff",letterSpacing:"-0.01em"}},"Forex Trading Journal"),
+          e("div",{style:{fontSize:9,color:C.dim}},raw.length+" trades · Starting Capital: $"+cap.toLocaleString())
         )
       ),
-      React.createElement("div",{style:{display:"flex",gap:8,alignItems:"center"}},
-        React.createElement("button",{onClick:openAdd,style:{background:C.blue,color:"#fff",border:"none",borderRadius:7,padding:"6px 14px",fontSize:11,fontWeight:700,cursor:"pointer"}},"+ New Trade"),
-        React.createElement("button",{onClick:()=>setShowSettings(true),style:{background:C.row,border:`1px solid ${C.border}`,color:C.text,borderRadius:7,padding:"6px 10px",fontSize:11,cursor:"pointer"}},"⚙")
+      e("div",{style:{display:"flex",gap:8,alignItems:"center"}},
+        e("button",{onClick:openAdd,style:{background:C.blue,color:"#fff",border:"none",borderRadius:7,padding:"6px 14px",fontSize:11,fontWeight:700}},"+ New Trade"),
+        e("button",{onClick:function(){setShowSet(true);},style:{background:C.row,border:"1px solid "+C.border,color:C.text,borderRadius:7,padding:"6px 10px",fontSize:13,cursor:"pointer"}},"⚙")
       )
     ),
-    React.createElement("div",{style:{background:C.card,borderBottom:`1px solid ${C.border}`,padding:"0 18px",display:"flex",gap:2,overflowX:"auto"}},
-      ...TABS.map(t=>React.createElement("button",{key:t.id,onClick:()=>setTab(t.id),style:{
-        background:tab===t.id?"#1A3A6B":"none",color:tab===t.id?"#60A5FA":C.dim,
-        border:"none",borderBottom:tab===t.id?`2px solid ${C.blue}`:"2px solid transparent",
-        padding:"9px 14px",fontSize:11,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",borderRadius:"6px 6px 0 0"
-      }},t.l))
+    // Tabs
+    e("div",{style:{background:C.card,borderBottom:"1px solid "+C.border,padding:"0 18px",display:"flex",gap:2,overflowX:"auto"}},
+      TABS.map(function(t){
+        var active=tab===t.id;
+        return e("button",{key:t.id,onClick:function(){setTab(t.id);},style:{
+          background:active?"#1A3A6B":"none",color:active?"#60A5FA":C.dim,
+          border:"none",borderBottom:active?"2px solid "+C.blue:"2px solid transparent",
+          padding:"9px 14px",fontSize:11,fontWeight:600,cursor:"pointer",whiteSpace:"nowrap",borderRadius:"6px 6px 0 0",
+          transition:"all 0.12s"
+        }},t.l);
+      })
     ),
-    React.createElement("div",{style:{padding:16}},
-      tab==="dashboard"&&React.createElement(DashboardTab,{trades,startCapital:startCap}),
-      tab==="raw"&&React.createElement(RawTab,{trades,onEdit:openEdit,onDelete:delTrade,onAdd:openAdd}),
-      tab==="daily"&&React.createElement(DailyTab,{trades}),
-      tab==="weekly"&&React.createElement(WeeklyTab,{trades}),
-      tab==="monthly"&&React.createElement(MonthlyTab,{trades}),
-      tab==="strategy"&&React.createElement(StrategyTab,{trades})
+    // Content
+    e("div",{style:{padding:16}},
+      tab==="dashboard"&&e(DashboardTab,{trades:trades,cap:cap}),
+      tab==="raw"&&e(RawTab,{trades:trades,onEdit:openEdit,onDelete:delTrade,onAdd:openAdd}),
+      tab==="daily"&&e(DailyTab,{trades:trades}),
+      tab==="weekly"&&e(WeeklyTab,{trades:trades}),
+      tab==="monthly"&&e(MonthlyTab,{trades:trades}),
+      tab==="strategy"&&e(StrategyTab,{trades:trades})
     ),
-    showForm&&React.createElement(TradeForm,{trade:editT,onSave:saveTrade,onClose:()=>{setShowForm(false);setEditT(null);}}),
-    showSettings&&React.createElement("div",{style:{position:"fixed",inset:0,background:"#00000099",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}},
-      React.createElement("div",{style:{background:C.card,border:`1px solid ${C.border}`,borderRadius:12,padding:22,width:320}},
-        React.createElement("div",{style:{fontWeight:700,fontSize:14,color:"#fff",marginBottom:14}},"Settings"),
-        React.createElement(FF,{label:"Starting Capital ($)"},React.createElement(Inp,{value:capInp,onChange:setCapInp,type:"number",placeholder:"10000"})),
-        React.createElement("div",{style:{color:C.dim,fontSize:10,marginBottom:14}},"Used to calculate Risk %, Reward % and running Capital per trade."),
-        React.createElement("div",{style:{display:"flex",gap:8}},
-          React.createElement("button",{onClick:saveSettings,style:{background:C.blue,color:"#fff",border:"none",borderRadius:8,padding:"8px 18px",fontSize:12,fontWeight:700,cursor:"pointer",flex:1}},"Save"),
-          React.createElement("button",{onClick:()=>setShowSettings(false),style:{background:C.border,color:C.text,border:"none",borderRadius:8,padding:"8px 12px",fontSize:12,cursor:"pointer"}},"Cancel")
+    showForm&&e(TradeForm,{trade:editT,onSave:saveTrade,onClose:function(){setShowForm(false);setEditT(null);}}),
+    showSet&&e("div",{style:{position:"fixed",inset:0,background:"#00000099",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center"}},
+      e("div",{style:{background:C.card,border:"1px solid "+C.border,borderRadius:12,padding:24,width:340}},
+        e("div",{style:{fontWeight:700,fontSize:14,color:"#fff",marginBottom:16}},"⚙ Settings"),
+        e(FF,{label:"Starting Capital ($)"},e(Inp,{value:capInp,onChange:setCapInp,type:"number",ph:"10000"})),
+        e("div",{style:{color:C.dim,fontSize:10,marginBottom:16,lineHeight:1.5}},"This is used to calculate Risk %, Reward % and running capital across all trades."),
+        e("div",{style:{display:"flex",gap:8}},
+          e("button",{onClick:saveSets,style:{background:C.blue,color:"#fff",border:"none",borderRadius:8,padding:"9px 18px",fontSize:12,fontWeight:700,flex:1}},"Save"),
+          e("button",{onClick:function(){setShowSet(false);},style:{background:C.border,color:C.text,border:"none",borderRadius:8,padding:"9px 14px",fontSize:12}},"Cancel")
         )
       )
     )
   );
 }
 
-ReactDOM.render(React.createElement(App),document.getElementById("root"));
+RD.render(R.createElement(App), document.getElementById("root"));
+}
 </script>
 </body>
 </html>
